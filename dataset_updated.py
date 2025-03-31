@@ -22,7 +22,8 @@ random.seed(1000) # to get same samples shuffled to have consistent training res
 # (user_id: [(movie_id, label)])
 import random
 
-def simple_load_data_rate(filename, negative_sample_no=10, threshold=4, train_ratio=0.7, test_ratio=0.15):
+import random
+def simple_load_data_rate(filename, negative_sample_no_train=100,negative_sample_no_valid= 100, threshold=4, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis, ensuring:
     - Validation has at least one positive sample
@@ -62,10 +63,37 @@ def simple_load_data_rate(filename, negative_sample_no=10, threshold=4, train_ra
 
     # Add negative samples and filter users with no positives
     all_movies = set(range(1, movie_num + 1))
-    filtered_user_ratings = {}
-    
+    non_interacted_user_train = {}
+    val_negatives = {}
     for user_id, interactions in user_ratings.items():
-        # Check if user has any positive interactions
+        
+        
+        # Only proceed for users with positive interactions
+        interacted_movies = {movie_id for movie_id, _ in interactions}
+        non_interacted = list(all_movies - interacted_movies)
+        
+        # Sample negative examples
+        if len(non_interacted) >= negative_sample_no_train:
+            negatives = random.sample(non_interacted, negative_sample_no_train)
+            remaining_movies = list(set(non_interacted) - set(negatives))
+        else:
+            negatives = non_interacted
+            remaining_movies = []
+        # Add negative samples to user's interactions
+        filtered_interactions = [(movie_id, 0) for movie_id in negatives]
+        non_interacted_user_train[user_id] = filtered_interactions
+        if len(remaining_movies) >= negative_sample_no_valid:
+            val_negs = random.sample(remaining_movies, negative_sample_no_valid)
+        else:
+            val_negs = remaining_movies
+        
+        val_negatives[user_id] = [(movie_id, 0) for movie_id in val_negs]
+
+    # Now split the filtered users
+    train_dict, val_dict, test_dict = {}, {}, {}
+
+    for user_id, interactions in user_ratings.items():
+        # Separate positive and negative interactions
         positives = [x for x in interactions if x[1] == 1]
         
         if not positives:
@@ -73,25 +101,6 @@ def simple_load_data_rate(filename, negative_sample_no=10, threshold=4, train_ra
             removed_users_info['removed_user_ids'].append(user_id)
             continue  # Skip this user
         
-        # Only proceed for users with positive interactions
-        interacted_movies = {movie_id for movie_id, _ in interactions}
-        non_interacted = list(all_movies - interacted_movies)
-        
-        # Sample negative examples
-        if len(non_interacted) >= negative_sample_no:
-            negatives = random.sample(non_interacted, negative_sample_no)
-        else:
-            negatives = non_interacted
-            
-        # Add negative samples to user's interactions
-        filtered_interactions = interactions + [(movie_id, 0) for movie_id in negatives]
-        filtered_user_ratings[user_id] = filtered_interactions
-
-    # Now split the filtered users
-    train_dict, val_dict, test_dict = {}, {}, {}
-
-    for user_id, interactions in filtered_user_ratings.items():
-        # Separate positive and negative interactions
         positives = [x for x in interactions if x[1] == 1]
         negatives = [x for x in interactions if x[1] == 0]
         
@@ -118,13 +127,13 @@ def simple_load_data_rate(filename, negative_sample_no=10, threshold=4, train_ra
         test_neg = negatives[val_neg_end:]
         
         # Combine positive and negative samples
-        train_dict[user_id] = train_pos + train_neg
-        val_dict[user_id] = val_pos + val_neg
+       
+        train_dict[user_id] = train_pos + train_neg + non_interacted_user_train[user_id]
+        val_dict[user_id] = val_pos + val_neg  + val_negatives[user_id]
         test_dict[user_id] = test_pos + test_neg
 
+    
     return train_dict, val_dict, test_dict, movie_num, user_num, removed_users_info
-
-
 
 
 def get_model_data(train_dict):
