@@ -1,7 +1,10 @@
 import numpy as np
 import torch
 
-def model_evaluation(model, val_dict, device, K=10):
+import torch
+import numpy as np
+
+def model_evaluation(model, val_dict, device, K=10, batch_size=1024):
     model.to(device)
     model.eval()
     user_input = []
@@ -16,49 +19,47 @@ def model_evaluation(model, val_dict, device, K=10):
 
     user_input = torch.tensor(user_input, dtype=torch.long, device=device)
     movie_input = torch.tensor(movie_input, dtype=torch.long, device=device)
-
+    
+    predictions = []
     with torch.no_grad():
-        predictions = model(user_input, movie_input).squeeze(-1).cpu().numpy()
-
+        for i in range(0, len(user_input), batch_size):  
+            batch_users = user_input[i:i+batch_size]
+            batch_movies = movie_input[i:i+batch_size]
+            batch_preds = model(batch_users, batch_movies).squeeze(-1).cpu().numpy()
+            predictions.extend(batch_preds)
+    
     predictions_dict = {}
     for u, m, score in zip(user_input.cpu().tolist(), movie_input.cpu().tolist(), predictions):
         if u not in predictions_dict:
             predictions_dict[u] = {}
         predictions_dict[u][m] = score
-
-    precision_list = []
-    recall_list = []
-
+    
+    precision_list, recall_list = [], []
     for u, interactions in val_dict.items():
         pos_movies = {m for m, label in interactions if label == 1}
-        if not pos_movies:
+        if not pos_movies or u not in predictions_dict:
             continue
-
-        if u not in predictions_dict:
-            continue
+        
         pred_scores = predictions_dict[u]
-
         top_k_items = np.array(sorted(pred_scores.keys(), key=lambda x: pred_scores[x], reverse=True))[:K]
-
-        # Calculate Precision@10
+        
         relevant_in_top_k = sum(1 for movie_id in top_k_items if movie_id in pos_movies)
         precision_at_10 = relevant_in_top_k / K
-        precision_list.append(precision_at_10)
-
-        # Calculate Recall@10
         recall_at_10 = relevant_in_top_k / len(pos_movies)
+        
+        precision_list.append(precision_at_10)
         recall_list.append(recall_at_10)
-
-    # Calculate average Precision@10 and Recall@10
+    
     avg_precision_at_10 = np.mean(precision_list) if precision_list else 0
     avg_recall_at_10 = np.mean(recall_list) if recall_list else 0
-
-    # Calculate F1@10
+    
     if avg_precision_at_10 + avg_recall_at_10 > 0:
         f1_at_10 = 2 * (avg_precision_at_10 * avg_recall_at_10) / (avg_precision_at_10 + avg_recall_at_10)
     else:
         f1_at_10 = 0
-
+    
+    torch.cuda.empty_cache() 
+    
     return avg_precision_at_10, avg_recall_at_10, f1_at_10
 
 
