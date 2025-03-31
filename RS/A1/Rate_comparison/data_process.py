@@ -33,9 +33,10 @@ def get_train_data(train_dict, non_interacted_movies, negative_num):
         if len(non_interacted_items) >= negative_num:
             negative_samples = random.sample(non_interacted_items, negative_num)
         else:
-            negative_samples = list(non_interacted_items) + random.choices(
-                list(non_interacted_items), k=negative_num - len(non_interacted_items)
-            )
+            # negative_samples = list(non_interacted_items) + random.choices(
+            #     list(non_interacted_items), k=negative_num - len(non_interacted_items)
+            # )
+            negative_samples = list(non_interacted_items)
 
         neg_sample_train[u] = set(negative_samples)
 
@@ -86,7 +87,8 @@ def get_part_noninteract_validation(val_dict, non_interacted_movies, neg_sample_
         valid_neg_samples = non_interacted_items - excluded_neg_samples
 
         if len(valid_neg_samples) < neg_num:
-            valid_neg_samples = list(valid_neg_samples) + random.choices(list(valid_neg_samples), k=neg_num - len(valid_neg_samples))
+            # valid_neg_samples = list(valid_neg_samples) + random.choices(list(valid_neg_samples), k=neg_num - len(valid_neg_samples))
+            valid_neg_samples = list(valid_neg_samples)
         else:
             valid_neg_samples = random.sample(valid_neg_samples, neg_num)
         
