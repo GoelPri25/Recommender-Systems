@@ -115,7 +115,8 @@ for name, loader in loaders.items():
         test_dict[user_id].append((movie_id, label))
     test_dict = dict(test_dict)
 
-    _, _, test_f1 = model_evaluation(model, test_dict, device, K=10)
+    with torch.no_grad():
+        _, _, test_f1 = model_evaluation(model, test_dict, device, K=10)
     print(f"\n=== Test F1 Score for {name}: {test_f1:.4f} ===\n")
 
     results[name] = {
