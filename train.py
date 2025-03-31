@@ -1,4 +1,5 @@
 import torch
+import os
 from neuMF import NeuMF
 from dataset_updated import simple_load_data_rate, get_model_data
 import random
@@ -21,12 +22,16 @@ torch._dynamo.config.suppress_errors = True
 random.seed(1000)
 
 
-file_name = "/Users/priyanjaligoel/Documents/Recommender_systems/ratings.dat"
+#file_name = "/Users/priyanjaligoel/Documents/Recommender_systems/ratings.dat"
 
-    
+
+base_dir = os.getcwd()
+name_rating_dir = "ml-1m/ratings.dat"
+rating_data_file = os.path.join(base_dir, name_rating_dir)
+
 #train_dict, val_dict, test_dict, non_interacted_movies, movie_num, user_num = load_data_rate(file_name)
 
-train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info= simple_load_data_rate(file_name)
+train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info= simple_load_data_rate(rating_data_file, threshold=3)
 
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
 valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
