@@ -172,6 +172,100 @@ def load_data_rate_np(filename, threshold=3, train_ratio=0.7, test_ratio=0.15):
 
     return train_dict, val_dict, test_dict, movie_num, user_num
 
+# split by timestamp
+def load_data_time_split(filename, threshold=3, train_ratio=0.7, test_ratio=0.15):
+    """
+    Load dataset and split data on a per-user time-based basis.
+
+    Args:
+        filename (str): Path to the ratings file.
+        threshold (int): Threshold to determine positive interactions.
+        train_ratio (float): Percentage of interactions used for training.
+        test_ratio (float): Percentage of interactions used for testing.
+
+    Returns:
+        train_dict, val_dict, test_dict, movie_num, user_num
+    """
+    user_ratings = {}  # (user_id: [(movie_id, label, timestamp), ...])
+    movie_num = -1
+    user_num = -1
+
+    with open(filename, "r", encoding="utf-8") as file:
+        for line in file:
+            user_id, movie_id, rating, timestamp = map(int, line.strip().split("::"))
+            label = 1 if rating >= threshold else 0
+
+            if user_id not in user_ratings:
+                user_ratings[user_id] = []
+            user_ratings[user_id].append((movie_id, label, timestamp))
+
+            movie_num = max(movie_num, movie_id)
+            user_num = max(user_num, user_id)
+
+    train_dict, val_dict, test_dict = {}, {}, {}
+
+    for user_id, interactions in user_ratings.items():
+        interactions.sort(key=lambda x: x[2])
+
+        total_interactions = len(interactions)
+        train_end = int(train_ratio * total_interactions)
+        val_end = int((train_ratio + test_ratio) * total_interactions)
+
+        train_dict[user_id] = [(m, l) for m, l, _ in interactions[:train_end]]
+        val_dict[user_id] = [(m, l) for m, l, _ in interactions[train_end:val_end]]
+        test_dict[user_id] = [(m, l) for m, l, _ in interactions[val_end:]]
+
+    return train_dict, val_dict, test_dict, movie_num, user_num
+
+
+# split by user
+def load_data_user_split(filename, threshold=4, train_ratio=0.7, test_ratio=0.15):
+    """
+    Load dataset and split data on a per-user basis.
+
+    Args:
+        filename (str): Path to the ratings file.
+        threshold (int): Threshold to determine positive interactions.
+        train_ratio (float): Percentage of users used for training.
+        test_ratio (float): Percentage of users used for testing.
+
+    Returns:
+        train_dict, val_dict, test_dict, movie_num, user_num
+    """
+    user_ratings = {}  
+    movie_num = -1
+    user_num = -1
+
+    with open(filename, "r", encoding="utf-8") as file:
+        for line in file:
+            user_id, movie_id, rating, _ = map(int, line.strip().split("::"))
+            label = 1 if rating >= threshold else 0
+
+            if user_id not in user_ratings:
+                user_ratings[user_id] = []
+            user_ratings[user_id].append((movie_id, label))
+
+            movie_num = max(movie_num, movie_id)
+            user_num = max(user_num, user_id)
+
+    users = list(user_ratings.keys())
+    random.shuffle(users)
+
+    total_users = len(users)
+    train_end = int(train_ratio * total_users)
+    val_end = int((train_ratio + test_ratio) * total_users)
+
+    train_users = set(users[:train_end])
+    val_users = set(users[train_end:val_end])
+    test_users = set(users[val_end:])
+
+    train_dict = {u: user_ratings[u] for u in train_users}
+    val_dict = {u: user_ratings[u] for u in val_users}
+    test_dict = {u: user_ratings[u] for u in test_users}
+
+    return train_dict, val_dict, test_dict, movie_num, user_num
+
+
 def load_data_meanStd(filename, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis using a dynamic threshold
