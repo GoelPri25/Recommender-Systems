@@ -6,7 +6,7 @@ from data_process import get_non_interacted_movies, get_train_data, get_part_non
 from NeuMF import NeuMF
 import torch.optim as optim
 from collections import defaultdict
-from evaluation import model_evaluation
+from evaluation import model_evaluation, model_evaluation_metric
 
 loaders = {
     "timestamp_split": lambda: load_data_time_split('ratings.dat', threshold=3),
@@ -59,7 +59,7 @@ for name, loader in loaders.items():
     criterion = nn.BCEWithLogitsLoss()
     scaler = torch.amp.GradScaler('cuda')
 
-    train_losses, val_losses, f1s = [], [], []
+    train_losses, val_losses, recalls, ndcgs = [], [], [], []
     best_val_loss = float('inf')
     counter = 0
 
@@ -89,13 +89,14 @@ for name, loader in loaders.items():
                 val_loss += loss.item()
         val_loss /= len(val_dataloader)
 
-        _, _, f1 = model_evaluation(model, val_dict, device, K=10)
+        recall, ndcg = model_evaluation_metric(model, val_dict, device, K=10)
 
-        print(f"Epoch {epoch+1}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, F1: {f1:.4f}")
+        print(f"Epoch {epoch+1}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Recall@10: {recall:.4f}, NDCG@10: {ndcg:.4f}")
 
         train_losses.append(train_loss)
         val_losses.append(val_loss)
-        f1s.append(f1)
+        recalls.append(recall)
+        ndcgs.append(ndcg)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -117,14 +118,16 @@ for name, loader in loaders.items():
     test_dict = dict(test_dict)
 
     with torch.no_grad():
-        _, _, test_f1 = model_evaluation(model, test_dict, device, K=10)
-    print(f"\n=== Test F1 Score for {name}: {test_f1:.4f} ===\n")
+        test_recall, test_ndcg = model_evaluation_metric(model, test_dict, device, K=10)
+    print(f"\n=== Test Recall@10: {test_recall:.4f}, Test NDCG@10: {test_ndcg:.4f} ===\n")
 
     results[name] = {
         "train_losses": train_losses,
         "val_losses": val_losses,
-        "f1_scores": f1s,
-        "test_f1": test_f1
+        "recall_scores": recalls,
+        "ndcg_scores": ndcgs,
+        "test_recall": test_recall,
+        "test_ndcg": test_ndcg
     }
 
 import json
