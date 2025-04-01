@@ -71,33 +71,41 @@ def get_all_noninteract_validation(val_dict, non_interacted_movies, neg_sample_t
     return user_input, movie_input, labels, neg_sample_val
 
 
-def get_part_noninteract_validation(val_dict, non_interacted_movies, neg_sample_train, pos_num=5, neg_num=499):
+import random
+
+def get_part_noninteract_validation(val_dict, non_interacted_movies, neg_sample_train, pos_num=5, neg_num=500):
     user_input, movie_input, labels = [], [], []
     neg_sample_val = {} 
     
     for u, rate_list in val_dict.items():
-        pos_samples = rate_list[:pos_num]  
+        pos_samples = [(movie_id, label) for movie_id, label in rate_list if label == 1]
+
+        if len(pos_samples) < pos_num:
+            continue 
+        
+        pos_samples = pos_samples[:pos_num] 
+
         for movie_id, label in pos_samples:
             user_input.append(u)
             movie_input.append(movie_id)
             labels.append(label)
-
-        non_interacted_items = set(non_interacted_movies.get(u, []))
-        excluded_neg_samples = neg_sample_train.get(u, set())
-        valid_neg_samples = non_interacted_items - excluded_neg_samples
-
-        if len(valid_neg_samples) < neg_num:
-            # valid_neg_samples = list(valid_neg_samples) + random.choices(list(valid_neg_samples), k=neg_num - len(valid_neg_samples))
-            valid_neg_samples = list(valid_neg_samples)
-        else:
-            valid_neg_samples = random.sample(valid_neg_samples, neg_num)
         
+        interacted_neg_samples = {movie_id for movie_id, label in rate_list if label == 0} 
+        non_interacted_items = set(non_interacted_movies.get(u, [])) 
+        excluded_neg_samples = neg_sample_train.get(u, set()) 
+        
+        valid_neg_samples = (interacted_neg_samples | non_interacted_items) - excluded_neg_samples
+        valid_neg_samples = list(valid_neg_samples)
+
+        if len(valid_neg_samples) > neg_num:
+            valid_neg_samples = random.sample(valid_neg_samples, neg_num) 
+
         neg_sample_val[u] = set(valid_neg_samples)
-        
+
         for movie_id in valid_neg_samples:
             user_input.append(u)
             movie_input.append(movie_id)
-            labels.append(0)
+            labels.append(0)  
 
     return user_input, movie_input, labels, neg_sample_val
 
