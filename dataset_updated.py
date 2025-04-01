@@ -79,6 +79,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=100,negative_sample
         else:
             negatives = non_interacted
             remaining_movies = []
+            
         # Add negative samples to user's interactions
         filtered_interactions = [(movie_id, 0) for movie_id in negatives]
         non_interacted_user_train[user_id] = filtered_interactions
@@ -96,7 +97,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=100,negative_sample
         # Separate positive and negative interactions
         positives = [x for x in interactions if x[1] == 1]
         
-        if not positives:
+        if len(positives)<5:
             removed_users_info['total_removed'] += 1
             removed_users_info['removed_user_ids'].append(user_id)
             continue  # Skip this user
@@ -127,12 +128,20 @@ def simple_load_data_rate(filename, negative_sample_no_train=100,negative_sample
         test_neg = negatives[val_neg_end:]
         
         # Combine positive and negative samples
-       
+        all_val_negs = val_neg  + val_negatives[user_id]
+        random.shuffle(all_val_negs)
+        if len(all_val_negs) > negative_sample_no_valid:
+            all_val_negs = all_val_negs[:negative_sample_no_valid]
+            
         train_dict[user_id] = train_pos + train_neg + non_interacted_user_train[user_id]
-        val_dict[user_id] = val_pos + val_neg  + val_negatives[user_id]
+        val_dict[user_id] = val_pos[:5] + all_val_negs
         test_dict[user_id] = test_pos + test_neg
 
-    
+        random.shuffle(train_dict[user_id])
+        random.shuffle(val_dict[user_id])
+        random.shuffle(test_dict[user_id])
+        
+        
     return train_dict, val_dict, test_dict, movie_num, user_num, removed_users_info
 
 
