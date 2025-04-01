@@ -18,9 +18,11 @@ results = {}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 negative_num = 10
-batch_size = 128
-num_epochs = 30
-patience = 10
+batch_size = 32
+num_epochs = 100
+patience = 50
+latent_dim = 8
+layer = [32, 16, 8]
 
 for name, loader in loaders.items():
     print(f"\n=== Training with {name} ===\n")
@@ -33,7 +35,7 @@ for name, loader in loaders.items():
 
     val_user_input, val_movie_input, val_labels, neg_sample_val = get_part_noninteract_validation(val_dict, 
                                                                                                   non_interacted_movies, 
-                                                                                                  neg_sample_train, pos_num=5, neg_num=499)
+                                                                                                  neg_sample_train, pos_num=5, neg_num=500)
     val_dict = defaultdict(list)
     for user_id, movie_id, label in zip(val_user_input, val_movie_input, val_labels):
         val_dict[user_id].append((movie_id, label))
@@ -53,7 +55,7 @@ for name, loader in loaders.items():
     val_dataset = torch.utils.data.TensorDataset(val_user_input, val_movie_input, val_labels)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    model = NeuMF(user_num+1, movie_num+1, 10, [10, 16]).to(device)
+    model = NeuMF(user_num+1, movie_num+1, latent_dim, layer).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
     criterion = nn.BCEWithLogitsLoss()
     scaler = torch.amp.GradScaler('cuda')

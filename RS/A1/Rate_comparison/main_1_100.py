@@ -33,7 +33,7 @@ for name, loader in loaders.items():
 
     val_user_input, val_movie_input, val_labels, neg_sample_val = get_part_noninteract_validation(val_dict, 
                                                                                                   non_interacted_movies, 
-                                                                                                  neg_sample_train, pos_num=1, neg_num=99)
+                                                                                                  neg_sample_train, pos_num=1, neg_num=100)
     val_dict = defaultdict(list)
     for user_id, movie_id, label in zip(val_user_input, val_movie_input, val_labels):
         val_dict[user_id].append((movie_id, label))
