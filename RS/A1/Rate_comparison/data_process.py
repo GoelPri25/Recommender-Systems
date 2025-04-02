@@ -18,33 +18,48 @@ def get_non_interacted_movies(train_dict, val_dict, test_dict, movie_num):
 
     return non_interacted_movies
 
-
 def get_train_data(train_dict, non_interacted_movies, negative_num):
     user_input, movie_input, labels = [], [], []
     neg_sample_train = {}
 
     for u, rate_list in train_dict.items():
+        positive_samples = []
+        negative_candidates = []
+
         for movie_id, label in rate_list:
+            if label == 1:
+                positive_samples.append(movie_id)
+            else:
+                negative_candidates.append(movie_id)
+
+        for movie_id in positive_samples:
             user_input.append(u)
             movie_input.append(movie_id)
-            labels.append(label)
+            labels.append(1)
 
             non_interacted_items = non_interacted_movies.get(u, [])
-            if len(non_interacted_items) >= negative_num:
-                negative_samples = random.sample(non_interacted_items, negative_num)
+            available_negatives = negative_candidates + list(non_interacted_items)
+
+            if len(available_negatives) >= negative_num:
+                negative_samples = random.sample(available_negatives, negative_num)
             else:
-                negative_samples = list(non_interacted_items) + random.choices(
-                    list(non_interacted_items), k=negative_num - len(non_interacted_items)
+                negative_samples = available_negatives + random.choices(
+                    available_negatives, k=negative_num - len(available_negatives)
                 )
 
-            for movie_id in negative_samples:
+            for neg_movie_id in negative_samples:
                 user_input.append(u)
-                movie_input.append(movie_id)
+                movie_input.append(neg_movie_id)
                 labels.append(0)
 
         neg_sample_train[u] = set(negative_samples)
 
-    return user_input, movie_input, labels, neg_sample_train
+    # --------------- Shuffle ---------------
+    data = list(zip(user_input, movie_input, labels))
+    random.shuffle(data)  
+    user_input, movie_input, labels = zip(*data) 
+
+    return list(user_input), list(movie_input), list(labels), neg_sample_train
 
 def get_all_noninteract_validation(val_dict, non_interacted_movies, neg_sample_train):
     user_input, movie_input, labels = [], [], []
@@ -72,40 +87,48 @@ def get_all_noninteract_validation(val_dict, non_interacted_movies, neg_sample_t
 
 
 def get_part_noninteract_validation(val_dict, non_interacted_movies, neg_sample_train, pos_num=5, neg_num=500):
+    user_discard = []
     user_input, movie_input, labels = [], [], []
-    neg_sample_val = {} 
-    
+    neg_sample_val = {}
+
     for u, rate_list in val_dict.items():
         pos_samples = [(movie_id, label) for movie_id, label in rate_list if label == 1]
 
         if len(pos_samples) < pos_num:
-            continue 
+            continue
         
-        pos_samples = pos_samples[:pos_num] 
+        pos_samples = pos_samples[:pos_num]
+
+        interacted_neg_samples = {movie_id for movie_id, label in rate_list if label == 0}
+        non_interacted_items = set(non_interacted_movies.get(u, []))
+        excluded_neg_samples = neg_sample_train.get(u, set())
+
+        valid_neg_samples = (interacted_neg_samples | non_interacted_items) - excluded_neg_samples
+        valid_neg_samples = list(valid_neg_samples)
+
+        if len(valid_neg_samples) < pos_num * neg_num:
+            user_discard.append(u)
+            continue
+        
+        neg_sample_val[u] = set(valid_neg_samples)
 
         for movie_id, label in pos_samples:
             user_input.append(u)
             movie_input.append(movie_id)
             labels.append(label)
-        
-        interacted_neg_samples = {movie_id for movie_id, label in rate_list if label == 0} 
-        non_interacted_items = set(non_interacted_movies.get(u, [])) 
-        excluded_neg_samples = neg_sample_train.get(u, set()) 
-        
-        valid_neg_samples = (interacted_neg_samples | non_interacted_items) - excluded_neg_samples
-        valid_neg_samples = list(valid_neg_samples)
 
-        if len(valid_neg_samples) > neg_num:
-            valid_neg_samples = random.sample(valid_neg_samples, neg_num) 
+            sampled_negatives = random.sample(valid_neg_samples, neg_num)
+            for neg_movie in sampled_negatives:
+                user_input.append(u)
+                movie_input.append(neg_movie)
+                labels.append(0)
+    
+    # --------------- Shuffle ---------------
+    data = list(zip(user_input, movie_input, labels))
+    random.shuffle(data)  
+    user_input, movie_input, labels = zip(*data)  
 
-        neg_sample_val[u] = set(valid_neg_samples)
-
-        for movie_id in valid_neg_samples:
-            user_input.append(u)
-            movie_input.append(movie_id)
-            labels.append(0)  
-
-    return user_input, movie_input, labels, neg_sample_val
+    return list(user_input), list(movie_input), list(labels), neg_sample_val, len(user_discard)
 
 
 def get_all_noninteract_test(test_dict, non_interacted_movies, neg_sample_train, neg_sample_val):
@@ -122,7 +145,6 @@ def get_all_noninteract_test(test_dict, non_interacted_movies, neg_sample_train,
         excluded_neg_samples_val = neg_sample_val.get(u, set())
         
         excluded_neg_samples = excluded_neg_samples_train.union(excluded_neg_samples_val)
-        
         valid_neg_samples = non_interacted_items - excluded_neg_samples
 
         neg_sample_val[u] = set(valid_neg_samples)
@@ -132,4 +154,9 @@ def get_all_noninteract_test(test_dict, non_interacted_movies, neg_sample_train,
             movie_input.append(movie_id)
             labels.append(0)
 
-    return user_input, movie_input, labels
+    # --------------- Shuffle ---------------
+    data = list(zip(user_input, movie_input, labels))
+    random.shuffle(data)  
+    user_input, movie_input, labels = zip(*data) 
+
+    return list(user_input), list(movie_input), list(labels)
