@@ -70,7 +70,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sampl
         remaining_needed = negative_sample_no_valid - len(val_neg)
 
         if remaining_needed > 0: 
-            additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
+            additional_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_train + remaining_needed]]
             val_neg += additional_neg
 
         if not val_neg or len(val_neg) < negative_sample_no_valid:
@@ -93,7 +93,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sampl
         
         train_neg += negatives[:train_neg_end]
         test_neg = negatives[val_neg_end:]
-        test_neg += [(m, 0) for m in non_interacted[remaining_needed:]]
+        test_neg += [(m, 0) for m in non_interacted[negative_sample_no_train + remaining_needed:]]
         
         if test_neg == 0 :
             print(test_neg)
