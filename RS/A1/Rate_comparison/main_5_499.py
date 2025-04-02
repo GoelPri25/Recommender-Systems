@@ -25,7 +25,6 @@ layer = [32, 16, 8]
 
 csv_filename = "training_log.csv"
 
-# 创建 CSV 并写入表头
 with open(csv_filename, "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["dataset", "epoch", "train_loss", "val_loss", "f1_score", "test_f1", "discard_user"])
