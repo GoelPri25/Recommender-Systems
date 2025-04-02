@@ -10,9 +10,9 @@ from evaluation import model_evaluation, model_evaluation_metric
 import csv
 
 loaders = {
-    "timestamp_split": lambda: load_data_time_split('ratings.dat', threshold=3),
-    "random_split": lambda: load_data_rate('ratings.dat', threshold=3),
     "pos_neg_split": lambda: load_data_rate_np('ratings.dat', threshold=3),
+    "random_split": lambda: load_data_rate('ratings.dat', threshold=3),
+    "timestamp_split": lambda: load_data_time_split('ratings.dat', threshold=3),
     "user_split": lambda: load_data_user_split('ratings.dat', threshold=3),
 }
 
