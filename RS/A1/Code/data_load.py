@@ -8,7 +8,7 @@ torch._dynamo.config.suppress_errors = True
 random.seed(1000) # to get same samples shuffled to have consistent training results
 
 
-def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sample_no_valid=100, threshold=4, train_ratio=0.7, test_ratio=0.15):
+def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample_no_valid=100, threshold=3, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis, ensuring:
     - Validation has at least one positive sample
