@@ -65,21 +65,25 @@ def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sampl
 
         random.shuffle(non_interacted)
         train_neg = [(m, 0) for m in non_interacted[:negative_sample_no_train]]
-        val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_train + negative_sample_no_valid]]
 
-        if not train_neg or not val_neg:
+        val_neg = negatives[:negative_sample_no_valid] 
+        remaining_needed = negative_sample_no_valid - len(val_neg)
+
+        if remaining_needed > 0: 
+            additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
+            val_neg += additional_neg
+
+        if not val_neg or len(val_neg) < negative_sample_no_valid:
             removed_users_info['total_removed'] += 1
             removed_users_info['removed_user_ids'].append(user_id)
             continue
-
-
 
         # Shuffle and split positives
         random.shuffle(positives)
         total_pos = len(positives)
         train_pos_end = int(train_ratio * total_pos)
         val_pos_end = train_pos_end + int(test_ratio * total_pos)
-        train_pos, val_pos, test_pos = positives[:train_pos_end], positives[train_pos_end:val_pos_end], positives[val_pos_end:]
+        train_pos, val_pos, test_pos = positives[:train_pos_end], positives[train_pos_end:val_pos_end] or positives[:1], positives[val_pos_end:]
         
         # Shuffle and split negatives
         random.shuffle(negatives)
@@ -88,12 +92,12 @@ def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sampl
         val_neg_end = train_neg_end + int(test_ratio * total_neg)
         
         train_neg += negatives[:train_neg_end]
-        val_neg += negatives[train_neg_end:val_neg_end]
         test_neg = negatives[val_neg_end:]
         
         # Merge and shuffle
         train_dict[user_id] = train_pos + train_neg
         val_dict[user_id] = val_pos[:5] + val_neg
+        # print(len(val_neg))
         test_dict[user_id] = test_pos + test_neg
         
         random.shuffle(train_dict[user_id])
@@ -146,4 +150,3 @@ if __name__ == "__main__":
     print(len(test_user_input), len(test_movie_input), len(test_labels ))
     
     print(removed_users_info)
-    
