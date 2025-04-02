@@ -138,7 +138,7 @@ for epoch in range(num_epochs):
     
     
     with torch.no_grad():
-        recall, ndcg = model_evaluation(model_ncf, valid_dict, device, K=10)
+        recall, ndcg = model_evaluation_metric(model_ncf, valid_dict, device, K=10)
         recalls_ncf.append(recall)
         ndcgs_ncf.append(ndcg)
 
