@@ -45,7 +45,6 @@ for name, loader in loaders.items():
 
     print(f'Discard user: {user_discard}')
 
-    # 记录被丢弃的用户
     with open(csv_filename, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([name, "Discard", "", "", "", "", user_discard])
