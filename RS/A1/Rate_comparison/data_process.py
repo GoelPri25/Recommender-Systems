@@ -43,9 +43,10 @@ def get_train_data(train_dict, non_interacted_movies, negative_num):
             if len(available_negatives) >= negative_num:
                 negative_samples = random.sample(available_negatives, negative_num)
             else:
-                negative_samples = available_negatives + random.choices(
-                    available_negatives, k=negative_num - len(available_negatives)
-                )
+                # negative_samples = available_negatives + random.choices(
+                #     available_negatives, k=negative_num - len(available_negatives)
+                # )
+                negative_samples = available_negatives
 
             for neg_movie_id in negative_samples:
                 user_input.append(u)
