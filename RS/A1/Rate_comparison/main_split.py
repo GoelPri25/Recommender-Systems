@@ -16,6 +16,7 @@ loaders = {
     "user_split": lambda: load_data_user_split('ratings.dat', threshold=3),
 }
 
+
 results = {}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
