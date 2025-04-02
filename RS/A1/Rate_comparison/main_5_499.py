@@ -19,8 +19,8 @@ results = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 negative_num = 10
 batch_size = 32
-num_epochs = 100
-patience = 50
+num_epochs = 50
+patience = 30
 latent_dim = 8
 layer = [32, 16, 8]
 
@@ -33,9 +33,10 @@ for name, loader in loaders.items():
     train_user_input, train_movie_input, train_labels, neg_sample_train = get_train_data(train_dict, 
                                                                                          non_interacted_movies, negative_num)
 
-    val_user_input, val_movie_input, val_labels, neg_sample_val = get_part_noninteract_validation(val_dict, 
+    val_user_input, val_movie_input, val_labels, neg_sample_val, user_discard = get_part_noninteract_validation(val_dict, 
                                                                                                   non_interacted_movies, 
                                                                                                   neg_sample_train, pos_num=5, neg_num=500)
+    print('Discard user' + user_discard)
     val_dict = defaultdict(list)
     for user_id, movie_id, label in zip(val_user_input, val_movie_input, val_labels):
         val_dict[user_id].append((movie_id, label))
