@@ -93,6 +93,10 @@ def simple_load_data_rate(filename, negative_sample_no_train=100, negative_sampl
         
         train_neg += negatives[:train_neg_end]
         test_neg = negatives[val_neg_end:]
+        test_neg += [(m, 0) for m in non_interacted[remaining_needed:]]
+        
+        if test_neg == 0 :
+            print(test_neg)
         
         # Merge and shuffle
         train_dict[user_id] = train_pos + train_neg
