@@ -20,8 +20,8 @@ results = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 negative_num = 10
 batch_size = 32
-num_epochs = 100
-patience = 50
+num_epochs = 50
+patience = 30
 latent_dim = 8
 layer = [32, 16, 8]
 
