@@ -8,7 +8,7 @@ torch._dynamo.config.suppress_errors = True
 random.seed(1000) # to get same samples shuffled to have consistent training results
 
 
-def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample_no_valid=100, threshold=3, train_ratio=0.7, test_ratio=0.15):
+def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample_no_valid=100, threshold=4, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis, ensuring:
     - Validation has at least one positive sample
@@ -75,18 +75,24 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         train_set = all_samples[:train_end]
         val_set = all_samples[train_end:val_end]
         test_set = all_samples[val_end:]
+        val_neg_existing = [(m, l) for m, l in val_set if l == 0]
 
+        remaining_needed = max(0, negative_sample_no_valid - len(val_neg_existing))
+
+        val_neg_additional = [(m, 0) for m in non_interacted[:remaining_needed]]
+
+        val_neg = val_neg_existing + val_neg_additional
         # Add negative samples to training and validation sets
         random.shuffle(non_interacted)
         
         train_neg = [(m, 0) for m in non_interacted[:negative_sample_no_train]]
-        val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_valid]]
-        
+        # val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_train+negative_sample_no_valid]]
+        test_neg = [(m, 0) for m in non_interacted[negative_sample_no_train+negative_sample_no_valid:]]
         # If there aren't enough negative samples in the validation set, fill the rest
-        remaining_needed = negative_sample_no_valid - len(val_neg)
-        if remaining_needed > 0:
-            additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
-            val_neg += additional_neg
+        # remaining_needed = negative_sample_no_valid - len(val_neg)
+        # if remaining_needed > 0:
+        #     additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
+        #     val_neg += additional_neg
 
         # Ensure we have at least 5 positive samples in the validation set
         if len(val_neg) < negative_sample_no_valid:
@@ -96,8 +102,9 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
 
         # Add the negative samples to the sets
         train_dict[user_id] = train_set + train_neg
-        val_dict[user_id] = val_set + val_neg
-        test_dict[user_id] = test_set
+        val_set_filtered = [sample for sample in val_set if sample not in val_neg_existing]
+        val_dict[user_id] = val_set_filtered + val_neg
+        test_dict[user_id] = test_set + test_neg
 
         # Shuffle the sets to ensure randomness
         random.shuffle(train_dict[user_id])
