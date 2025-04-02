@@ -80,13 +80,13 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         random.shuffle(non_interacted)
         
         train_neg = [(m, 0) for m in non_interacted[:negative_sample_no_train]]
-        val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_valid]]
-        
+        val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_train+negative_sample_no_valid]]
+        test_neg = [(m, 0) for m in non_interacted[negative_sample_no_train+negative_sample_no_valid:]]
         # If there aren't enough negative samples in the validation set, fill the rest
-        remaining_needed = negative_sample_no_valid - len(val_neg)
-        if remaining_needed > 0:
-            additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
-            val_neg += additional_neg
+        # remaining_needed = negative_sample_no_valid - len(val_neg)
+        # if remaining_needed > 0:
+        #     additional_neg = [(m, 0) for m in non_interacted[:remaining_needed]]
+        #     val_neg += additional_neg
 
         # Ensure we have at least 5 positive samples in the validation set
         if len(val_neg) < negative_sample_no_valid:
@@ -97,7 +97,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         # Add the negative samples to the sets
         train_dict[user_id] = train_set + train_neg
         val_dict[user_id] = val_set + val_neg
-        test_dict[user_id] = test_set
+        test_dict[user_id] = test_set + test_neg
 
         # Shuffle the sets to ensure randomness
         random.shuffle(train_dict[user_id])
