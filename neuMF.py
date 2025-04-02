@@ -15,18 +15,32 @@ class NeuMF(nn.Module):
         self.item_embedding_mlp = nn.Embedding(num_items, layers[0] // 2)
 
         # Initialize embedding weights
-        nn.init.normal_(self.user_embedding_gmf.weight, std=0.01)
-        nn.init.normal_(self.item_embedding_gmf.weight, std=0.01)
-        nn.init.normal_(self.user_embedding_mlp.weight, std=0.01)
-        nn.init.normal_(self.item_embedding_mlp.weight, std=0.01)
-
+        # nn.init.normal_(self.user_embedding_gmf.weight, std=0.01)
+        # nn.init.normal_(self.item_embedding_gmf.weight, std=0.01)
+        # nn.init.normal_(self.user_embedding_mlp.weight, std=0.01)
+        # nn.init.normal_(self.item_embedding_mlp.weight, std=0.01)
+        
+        nn.init.xavier_uniform_(self.user_embedding_gmf.weight)
+        nn.init.xavier_uniform_(self.item_embedding_gmf.weight)
+        nn.init.xavier_uniform_(self.user_embedding_mlp.weight)
+        nn.init.xavier_uniform_(self.item_embedding_mlp.weight)
+        
+        
         # MLP Layers
         self.mlp_layers = nn.Sequential()
         input_dim = layers[0]  # Initial input size (concatenated user & item embeddings)
+        # for i in range(1, len(layers)):
+        #     self.mlp_layers.add_module(f"fc{i}", nn.Linear(input_dim, layers[i]))
+        #     self.mlp_layers.add_module(f"relu{i}", nn.ReLU())
+        #     input_dim = layers[i]
+        
         for i in range(1, len(layers)):
             self.mlp_layers.add_module(f"fc{i}", nn.Linear(input_dim, layers[i]))
+            self.mlp_layers.add_module(f"batchnorm{i}", nn.BatchNorm1d(layers[i]))  # Batch Norm
             self.mlp_layers.add_module(f"relu{i}", nn.ReLU())
+            # self.mlp_layers.add_module(f"dropout{i}", nn.Dropout(p=0.1))
             input_dim = layers[i]
+
 
         # Output layer: combines GMF and MLP outputs
         self.fc_output = nn.Linear(mf_dim + layers[-1], 1)  # GMF (mf_dim) + MLP (last layer size)
@@ -40,7 +54,10 @@ class NeuMF(nn.Module):
         user_latent_gmf = self.user_embedding_gmf(user_indices)
         item_latent_gmf = self.item_embedding_gmf(item_indices)
         gmf_out = torch.mul(user_latent_gmf, item_latent_gmf)  # Element-wise multiplication
-
+        
+        #self.batch_norm =  nn.BatchNorm1d(mf_dim)
+        #gmf_out = self.batch_norm(gmf_out)
+        
         # MLP Forward Pass: Concatenate embeddings and pass through MLP layers
         user_latent_mlp = self.user_embedding_mlp(user_indices)
         item_latent_mlp = self.item_embedding_mlp(item_indices)
