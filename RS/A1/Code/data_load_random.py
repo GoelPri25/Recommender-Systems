@@ -80,7 +80,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         random.shuffle(non_interacted)
         
         train_neg = [(m, 0) for m in non_interacted[:negative_sample_no_train]]
-        val_neg = [(m, 0) for m in non_interacted[:negative_sample_no_valid]]
+        val_neg = [(m, 0) for m in non_interacted[negative_sample_no_train:negative_sample_no_valid]]
         
         # If there aren't enough negative samples in the validation set, fill the rest
         remaining_needed = negative_sample_no_valid - len(val_neg)
