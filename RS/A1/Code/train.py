@@ -1,7 +1,7 @@
 import torch
 import os
 from NeuMF import NeuMF
-from data_load import simple_load_data_rate, get_model_data
+# from data_load import simple_load_data_rate, get_model_data
 from data_load_random import simple_load_data_rate, get_model_data
 
 import random
@@ -12,7 +12,7 @@ mp.set_start_method('spawn', force=True)
 import torch.optim as optim
 import torch._dynamo
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from evaluation import model_evaluation, model_evaluation_metric
+from evaluation import model_evaluation_metric
 import pandas as pd
 from collections import defaultdict
 torch._dynamo.config.suppress_errors = True
