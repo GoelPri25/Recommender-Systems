@@ -8,7 +8,7 @@ torch._dynamo.config.suppress_errors = True
 random.seed(1000) # to get same samples shuffled to have consistent training results
 
 
-def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample_no_valid=100, threshold=3, train_ratio=0.7, test_ratio=0.15):
+def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis, ensuring:
     - Validation has at least one positive sample
@@ -18,7 +18,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
     
     Args:
         filename (str): Path to the ratings file.
-        negative_sample_no_train (int): Number of negative samples for training.
+        negative_sample_no_train (int): Number of negative samples for each positive sample in training.
         negative_sample_no_valid (int): Number of negative samples for validation.
         threshold (int): Rating threshold for positive samples.
         train_ratio (float): Percentage of interactions used for training.
@@ -55,7 +55,6 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         interacted_movies = {m for m, _ in interactions}
 
         # non-interacted
-        # skip users with too little negative samples
         non_interacted = list(all_movies - interacted_movies)
 
         if not non_interacted:
@@ -64,7 +63,12 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
             continue
 
         random.shuffle(non_interacted)
-        train_neg = [(m, 0) for m in non_interacted[:negative_sample_no_train]]
+
+        # Train negative samples: For each positive sample, sample negative samples from non-interacted movies
+        train_neg = []
+        for movie_id, label in positives:
+            neg_samples = random.sample(non_interacted, negative_sample_no_train)
+            train_neg.extend([(m, 0) for m in neg_samples])
 
         val_neg = negatives[:negative_sample_no_valid] 
         remaining_needed = negative_sample_no_valid - len(val_neg)
@@ -91,17 +95,12 @@ def simple_load_data_rate(filename, negative_sample_no_train=10, negative_sample
         train_neg_end = int(train_ratio * total_neg)
         val_neg_end = train_neg_end + int(test_ratio * total_neg)
         
-        train_neg += negatives[:train_neg_end]
         test_neg = negatives[val_neg_end:]
         test_neg += [(m, 0) for m in non_interacted[negative_sample_no_train + remaining_needed:]]
-        
-        if test_neg == 0 :
-            print(test_neg)
         
         # Merge and shuffle
         train_dict[user_id] = train_pos + train_neg
         val_dict[user_id] = val_pos[:5] + val_neg
-        # print(len(val_neg))
         test_dict[user_id] = test_pos + test_neg
         
         random.shuffle(train_dict[user_id])
