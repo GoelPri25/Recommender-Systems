@@ -140,7 +140,7 @@ for epoch in range(num_epochs):
 
             # Save to CSV every epoch
             df_metrics = pd.DataFrame(metrics)
-            df_metrics.to_csv(f'./training_metrics_threshold_{threshold_value}_without_scheduler.csv', index=False)
+            df_metrics.to_csv(f'./training_metrics_filter.csv', index=False)
 
             # Early stopping mechanism
             tolerance = 0.001  # Allow minor fluctuations
@@ -178,7 +178,7 @@ with torch.no_grad():
 
         # Save the final metrics including test results to CSV
     df_metrics = pd.DataFrame(metrics)
-    df_metrics.to_csv(f'./training_metrics_with_test_results_threshold_{threshold_value}.csv', index=False)
+    df_metrics.to_csv(f'./training_filter.csv', index=False)
 
     # Store results for reference
     results[f'threshold_{threshold_value}'] = {
