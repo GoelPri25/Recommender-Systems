@@ -8,12 +8,14 @@ torch._dynamo.config.suppress_errors = True
 random.seed(1000) # to get same samples shuffled to have consistent training results
 
 
-def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3, train_ratio=0.7, test_ratio=0.15):
+import random
+
+def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3, filter=False, train_ratio=0.7, test_ratio=0.15):
     """
     Load dataset and split data on a per-user basis, ensuring:
     - Validation has at least one positive sample
     - Users with fewer than 5 positives are removed
-    - Users with no enough negative samples are removed
+    - Users with not enough negative samples are removed
     - Returns information about removed users
     
     Args:
@@ -21,6 +23,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_
         negative_sample_no_train (int): Number of negative samples for training.
         negative_sample_no_valid (int): Number of negative samples for validation.
         threshold (int): Rating threshold for positive samples.
+        filter (bool): Whether to filter ratings so that only 4,5 are positive and 1,2 are negative.
         train_ratio (float): Percentage of interactions used for training.
         test_ratio (float): Percentage of interactions used for testing.
 
@@ -35,7 +38,18 @@ def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_
     with open(filename, "r", encoding="utf-8") as file:
         for line in file:
             user_id, movie_id, rating, _ = map(int, line.strip().split("::"))
-            label = 1 if rating >= threshold else 0
+
+            # Apply filtering condition
+            if filter:
+                if rating in [4, 5]:
+                    label = 1
+                elif rating in [1, 2]:
+                    label = 0
+                else:
+                    continue  # Skip rating=3
+            else:
+                label = 1 if rating >= threshold else 0
+
             user_ratings.setdefault(user_id, []).append((movie_id, label))
             movie_num, user_num = max(movie_num, movie_id), max(user_num, user_id)
     
