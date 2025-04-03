@@ -1,8 +1,8 @@
 import torch
 import os
 from NeuMF import NeuMF
-# from data_load import simple_load_data_rate, get_model_data
-from data_load_perpos import simple_load_data_rate, get_model_data
+from data_load import simple_load_data_rate, get_model_data
+# from data_load_perpos import simple_load_data_rate, get_model_data
 
 import random
 import torch
