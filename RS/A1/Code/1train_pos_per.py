@@ -169,11 +169,11 @@ for epoch in range(num_epochs):
 
 
 # Test phase
-test_dict = defaultdict(list)
+# test_dict = defaultdict(list)
 
-for user_id, movie_id, label in zip(test_user_input, test_movie_input, test_labels):
-    test_dict[user_id].append((movie_id, label))
-test_dict = dict(test_dict)
+# for user_id, movie_id, label in zip(test_user_input, test_movie_input, test_labels):
+#     test_dict[user_id].append((movie_id, label))
+# test_dict = dict(test_dict)
 
 with torch.no_grad():
     test_recall, test_ndcg = model_evaluation_metric(model_ncf, test_dict, device, K=10)
