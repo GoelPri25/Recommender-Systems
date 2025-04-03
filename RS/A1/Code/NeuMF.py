@@ -37,7 +37,7 @@ class NeuMF(nn.Module):
         for i in range(1, len(layers)):
             self.mlp_layers.add_module(f"fc{i}", nn.Linear(input_dim, layers[i]))
             # batch norm
-            self.mlp_layers.add_module(f"batchnorm{i}", nn.BatchNorm1d(layers[i]))  # Batch Norm
+            # self.mlp_layers.add_module(f"batchnorm{i}", nn.BatchNorm1d(layers[i]))  # Batch Norm
             self.mlp_layers.add_module(f"relu{i}", nn.ReLU())
             # self.mlp_layers.add_module(f"dropout{i}", nn.Dropout(p=0.1))
             input_dim = layers[i]
