@@ -20,10 +20,11 @@ class NeuMF(nn.Module):
         # nn.init.normal_(self.user_embedding_mlp.weight, std=0.01)
         # nn.init.normal_(self.item_embedding_mlp.weight, std=0.01)
         
-        nn.init.xavier_uniform_(self.user_embedding_gmf.weight)
-        nn.init.xavier_uniform_(self.item_embedding_gmf.weight)
-        nn.init.xavier_uniform_(self.user_embedding_mlp.weight)
-        nn.init.xavier_uniform_(self.item_embedding_mlp.weight)
+        nn.init.kaiming_normal_(self.user_embedding_gmf.weight, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.item_embedding_gmf.weight, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.user_embedding_mlp.weight, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.item_embedding_mlp.weight, nonlinearity='relu')
+
         
         
         # MLP Layers
