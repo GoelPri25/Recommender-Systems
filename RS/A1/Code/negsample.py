@@ -46,7 +46,7 @@ for negative_sample_no_train in negative_samples:
     print(f"Training with negative_sample_no_train={negative_sample_no_train}")
     
     # Reload data for the new negative sample size
-    train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info = simple_load_data_rate(rating_data_file, negative_sample_no_train=negative_sample_no_train, negative_sample_no_valid=100, threshold=3)
+    train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load_data_rate(rating_data_file, negative_sample_no_train=negative_sample_no_train, negative_sample_no_valid=100, threshold=3)
     
     train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
     valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
