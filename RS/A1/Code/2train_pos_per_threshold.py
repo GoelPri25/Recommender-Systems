@@ -17,6 +17,7 @@ random.seed(1000)
 base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
+best_model = None
 
 # Loop through different threshold values (3 and 4)
 for threshold_value in [3, 4]:
@@ -141,19 +142,20 @@ for threshold_value in [3, 4]:
 
             # Save to CSV every epoch
             df_metrics = pd.DataFrame(metrics)
-            df_metrics.to_csv(f'./training_metrics_threshold_{threshold_value}_without_scheduler.csv', index=False)
+            df_metrics.to_csv(f'./1_rating_threshold_{threshold_value}.csv', index=False)
 
             # Early stopping mechanism
             tolerance = 0.001  # Allow minor fluctuations
             if val_loss_avg < (best_val_loss - tolerance):
                 best_val_loss = val_loss_avg
                 counter = 0
+                best_model = model_ncf
             else:
                 counter += 1
                 print(f"Early Stopping Counter: {counter}/{patience}")
                 if counter >= patience:
                     print("Early stopping: Loss stagnated.")
-                    torch.save(model_ncf, f"./best_model_ncf_threshold_{threshold_value}.pth")
+                    torch.save(best_model, f"./1_rating_threshold_{threshold_value}.pth") 
                     break
 
     # Test phase
@@ -164,7 +166,7 @@ for threshold_value in [3, 4]:
     test_dict = dict(test_dict)
 
     with torch.no_grad():
-        test_recall, test_ndcg, test_precision = model_evaluation_metric(model_ncf, test_dict, device, K=10)
+        test_recall, test_ndcg, test_precision = model_evaluation_metric(best_model, test_dict, device, K=10)
 
         # Calculate F1@10 for test data
         if test_precision + test_recall > 0:
@@ -179,7 +181,7 @@ for threshold_value in [3, 4]:
 
         # Save the final metrics including test results to CSV
         df_metrics = pd.DataFrame(metrics)
-        df_metrics.to_csv(f'./training_metrics_with_test_results_threshold_{threshold_value}.csv', index=False)
+        df_metrics.to_csv(f'./1_rating_threshold_test_{threshold_value}.csv', index=False)
 
         # Store results for reference
         results[f'threshold_{threshold_value}'] = {
