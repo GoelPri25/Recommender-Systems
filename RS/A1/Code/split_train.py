@@ -37,7 +37,7 @@ data_loads = [
 ]
 
 for name, simple_load, get_model_data in data_loads:
-    train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load(rating_data_file, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3)
+    train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load(rating_data_file, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=4)
 
     train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
     valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
