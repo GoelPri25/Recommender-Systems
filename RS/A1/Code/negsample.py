@@ -27,7 +27,7 @@ base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
 
-negative_samples = [1, 3]
+negative_samples = [1, 3, 5, 10]
 results = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 32
@@ -140,21 +140,22 @@ for negative_sample_no_train in negative_samples:
         df_metrics.to_csv(f'./training_metrics_with_filter_sample_{negative_sample_no_train}.csv', index=False)
 
         # Early stopping mechanism
-        tolerance = 0.001
+        tolerance = 0.001  # Allow minor fluctuations
         if val_loss_avg < (best_val_loss - tolerance):
             best_val_loss = val_loss_avg
             counter = 0
+            best_model = model_ncf
         else:
             counter += 1
             print(f"Early Stopping Counter: {counter}/{patience}")
             if counter >= patience:
                 print("Early stopping: Loss stagnated.")
-                torch.save(model_ncf, f"./best_model_ncf_layer_sample_{negative_sample_no_train}.pth")
+                torch.save(best_model, f"./3_neg_{negative_sample_no_train}.pth") 
                 break
 
 
     with torch.no_grad():
-        test_recall, test_ndcg = model_evaluation_metric(model_ncf, test_dict, device, K=10)
+        test_recall, test_ndcg = model_evaluation_metric(best_model, test_dict, device, K=10)
         print(f"\n=== Test Recall@10: {test_recall:.4f}, Test NDCG@10: {test_ndcg:.4f} ===\n")
         
         # Add test results to the dictionary
