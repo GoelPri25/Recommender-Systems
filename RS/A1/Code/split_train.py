@@ -31,13 +31,12 @@ rating_data_file = os.path.join(base_dir, name_rating_dir)
 
 #train_dict, val_dict, test_dict, non_interacted_movies, movie_num, user_num = load_data_rate(file_name)
 
-# 定义一个列表，包含需要循环处理的 data_load 函数
 data_loads = [
-    (simple_load_data_rate1, get_model_data1),
-    (simple_load_data_rate2, get_model_data2)
+    ('pos_neg', simple_load_data_rate1, get_model_data1),
+    ('random', simple_load_data_rate2, get_model_data2)
 ]
 
-for simple_load, get_model_data in data_loads:
+for name, simple_load, get_model_data in data_loads:
     train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load(rating_data_file, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3)
 
     train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
@@ -161,19 +160,20 @@ for simple_load, get_model_data in data_loads:
             
             # Save to CSV every epoch
             df_metrics = pd.DataFrame(metrics)
-            df_metrics.to_csv(f'./{simple_load}.csv', index=False)
+            df_metrics.to_csv(f'./2_{name}.csv', index=False)
 
             # Early stopping mechanism
             tolerance = 0.001  # Allow minor fluctuations
             if val_loss_avg < (best_val_loss - tolerance):
                 best_val_loss = val_loss_avg
                 counter = 0
+                best_model = model_ncf
             else:
                 counter += 1
                 print(f"Early Stopping Counter: {counter}/{patience}")
                 if counter >= patience:
                     print("Early stopping: Loss stagnated.")
-                    torch.save(model_ncf, f"./{simple_load}.pth")
+                    torch.save(best_model, f"./2_{name}.pth") 
                     break
 
 
@@ -185,7 +185,7 @@ for simple_load, get_model_data in data_loads:
     # test_dict = dict(test_dict)
 
     with torch.no_grad():
-        test_recall, test_ndcg = model_evaluation_metric(model_ncf, test_dict, device, K=10)
+        test_recall, test_ndcg = model_evaluation_metric(best_model, test_dict, device, K=10)
         print(f"\n=== Test Recall@10: {test_recall:.4f}, Test NDCG@10: {test_ndcg:.4f} ===\n")
         
         # Add test results to the dictionary
@@ -194,7 +194,7 @@ for simple_load, get_model_data in data_loads:
         
         # Save the final metrics including test results to CSV
         df_metrics = pd.DataFrame(metrics)
-        df_metrics.to_csv(f'./{simple_load}_test.csv', index=False)
+        df_metrics.to_csv(f'f"./2_test_{name}.csv"', index=False)
 
         # Store results for reference
         results['name'] = {
