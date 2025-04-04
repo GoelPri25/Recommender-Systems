@@ -100,7 +100,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_
 
         # **Changes here**: For each positive sample in training set, sample negative samples
         train_neg = []
-        start_idx = 0
+        start_idx = remaining_needed
         for _, label in train_set:
             if label == 1:
                 end_idx = start_idx + negative_sample_no_train
