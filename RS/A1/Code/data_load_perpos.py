@@ -107,7 +107,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_
                 neg_samples = [(m, 0) for m in non_interacted[start_idx:end_idx]]
                 train_neg.extend(neg_samples)
                 start_idx = end_idx
-        test_neg = [(m, 0) for m in non_interacted[start_idx+negative_sample_no_valid:]]
+        test_neg = [(m, 0) for m in non_interacted[start_idx:]]
 
         # Ensure we have at least 5 positive samples in the validation set
         if len(val_neg) < negative_sample_no_valid:
