@@ -107,7 +107,7 @@ def simple_load_data_rate(filename, negative_sample_no_train=1, negative_sample_
         random.shuffle(val_dict[user_id])
         random.shuffle(test_dict[user_id])
     
-    return train_dict, val_dict, test_dict, movie_num, user_num, removed_users_info
+    return train_dict, val_dict, test_dict, movie_num, user_num, removed_users_info, user_ratings
 
 
 

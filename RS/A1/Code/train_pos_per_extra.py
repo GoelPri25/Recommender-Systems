@@ -22,7 +22,7 @@ threshold_value = 4  # 只测试 threshold=4，且 filter=True
 print(f"\nRunning with threshold = {threshold_value}")
 
 # Load data for the current threshold value
-train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info = simple_load_data_rate(
+train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load_data_rate(
 rating_data_file, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=threshold_value, filter=True)
 
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
