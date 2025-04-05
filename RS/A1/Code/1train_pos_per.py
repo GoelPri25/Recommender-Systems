@@ -1,6 +1,9 @@
 import torch
 import os
 from NeuMF import NeuMF
+from GMF import GMF
+from MLP import MLP
+
 from data_load import simple_load_data_rate, get_model_data
 # from data_load_perpos import simple_load_data_rate, get_model_data
 
@@ -29,7 +32,7 @@ rating_data_file = os.path.join(base_dir, name_rating_dir)
 
 #train_dict, val_dict, test_dict, non_interacted_movies, movie_num, user_num = load_data_rate(file_name)
 
-train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info= simple_load_data_rate(rating_data_file, negative_sample_no_train=1, negative_sample_no_valid=100, threshold=3)
+train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load_data_rate(rating_data_file, negative_sample_no_train=5, negative_sample_no_valid=100, threshold=3)
 
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
 valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
@@ -57,16 +60,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 batch_size = 32
 num_epochs = 50
-model_ncf = NeuMF(
+
+model_gmf = GMF(
     num_users=user_num + 1,  # +1 for 0-based indexing
     num_items=movie_num + 1,
-    mf_dim=8,       # Larger embeddings (vs. 10) for richer latent features
-    layers=[16,8], # Deeper MLP for nonlinear interactions
+    latent_dim=64,       # Larger embeddings (vs. 10) for richer latent features
+    # layers=[16,8], # Deeper MLP for nonlinear interactions
             
 ).to(device)
 
 optimizer = optim.Adam(
-    model_ncf.parameters(),
+    model_gmf.parameters(),
     lr=0.001,       # Higher initial LR for faster convergence (MovieLens is dense)
      # Default momentum terms
     weight_decay=1e-5,  # Mild L2 regularization to prevent overfitting
@@ -92,13 +96,13 @@ val_labels = torch.tensor(valid_labels, dtype=torch.float32).to(device)
 
 val_dataset = torch.utils.data.TensorDataset(val_user_input, val_movie_input, val_labels)
 val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
-model_ncf = torch.compile(model_ncf)  # Optimize model (PyTorch 2.0+)
-model_ncf = torch.nn.DataParallel(model_ncf)  # Enable Multi-GPU
+model_gmf = torch.compile(model_gmf)  # Optimize model (PyTorch 2.0+)
+model_gmf = torch.nn.DataParallel(model_gmf)  # Enable Multi-GPU
 
 metrics = defaultdict(list)  # Tracks all metrics across epochs
 
 for epoch in range(num_epochs):
-    model_ncf.train()
+    model_gmf.train()
     total_loss = 0
 
     for batch_users, batch_items, batch_labels in dataloader:
@@ -107,7 +111,7 @@ for epoch in range(num_epochs):
         batch_labels = batch_labels.to(device)
         optimizer.zero_grad(set_to_none=True)
         with torch.amp.autocast('cuda'):
-            predictions = model_ncf(batch_users, batch_items)
+            predictions = model_gmf(batch_users, batch_items)
             loss = criterion(predictions, batch_labels.view(-1, 1))
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -116,7 +120,7 @@ for epoch in range(num_epochs):
 
     print(f"Epoch {epoch + 1}, Training Loss: {total_loss / len(dataloader)}")
 
-    model_ncf.eval()
+    model_gmf.eval()
     val_loss = 0.0
    
     
@@ -127,7 +131,7 @@ for epoch in range(num_epochs):
                 batch_items = batch_items.to(device, non_blocking=True)
                 batch_labels = batch_labels.to(device, non_blocking=True)
     
-                predictions = model_ncf(batch_users, batch_items)  # Optimized inference
+                predictions = model_gmf(batch_users, batch_items)  # Optimized inference
 
    
                 loss = criterion(predictions, batch_labels.view(-1, 1))
@@ -138,7 +142,7 @@ for epoch in range(num_epochs):
     
     
     with torch.no_grad():
-        recall, ndcg = model_evaluation_metric(model_ncf, valid_dict, device, K=10)
+        recall, ndcg = model_evaluation_metric(model_gmf, valid_dict, device, K=10)
         recalls_ncf.append(recall)
         ndcgs_ncf.append(ndcg)
 
@@ -152,19 +156,20 @@ for epoch in range(num_epochs):
         
         # Save to CSV every epoch
         df_metrics = pd.DataFrame(metrics)
-        df_metrics.to_csv(f'./training_metrics_with_filter.csv', index=False)
+        df_metrics.to_csv(f'./gmf.csv', index=False)
 
         # Early stopping mechanism
         tolerance = 0.001  # Allow minor fluctuations
         if val_loss_avg < (best_val_loss - tolerance):
             best_val_loss = val_loss_avg
             counter = 0
+            best_model = model_gmf
         else:
             counter += 1
             print(f"Early Stopping Counter: {counter}/{patience}")
             if counter >= patience:
                 print("Early stopping: Loss stagnated.")
-                torch.save(model_ncf, "./best_model_ncf_layer_latest.pth")
+                torch.save(best_model, f"./5_gmf.pth") 
                 break
 
 
@@ -176,7 +181,7 @@ for epoch in range(num_epochs):
 # test_dict = dict(test_dict)
 
 with torch.no_grad():
-    test_recall, test_ndcg = model_evaluation_metric(model_ncf, test_dict, device, K=10)
+    test_recall, test_ndcg = model_evaluation_metric(best_model, test_dict, device, K=10)
     print(f"\n=== Test Recall@10: {test_recall:.4f}, Test NDCG@10: {test_ndcg:.4f} ===\n")
     
     # Add test results to the dictionary
@@ -185,7 +190,7 @@ with torch.no_grad():
     
     # Save the final metrics including test results to CSV
     df_metrics = pd.DataFrame(metrics)
-    df_metrics.to_csv(f'./training_filter_with_test_results.csv', index=False)
+    df_metrics.to_csv(f'./5_gmf_test.csv', index=False)
 
     # Store results for reference
     results['name'] = {
