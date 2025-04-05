@@ -27,7 +27,7 @@ base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
 
-negative_samples = [7]
+negative_samples = [1, 3, 5, 7, 10]
 results = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 32
