@@ -26,18 +26,15 @@ ncf_model = NeuMF(
     mf_dim=predictive_factor,
     layers=layer,
 ).to(device)
+model_state_dict = ncf_model.state_dict()
 
 # Load the pre-trained best model weights
-state_dict = torch.load('./best_model_ncf_15.pth')
+pretrained_dict = torch.load('./best_model_ncf_15.pth')
 
 # Create a new state_dict without the '_orig_mod.' prefix
-new_state_dict = {}
-for key, value in state_dict.items():
-    new_key = key.replace('_orig_mod.', '')  # Remove the prefix
-    new_state_dict[new_key] = value
-
-# Now load the new state_dict into your model
-ncf_model.load_state_dict(new_state_dict)
+pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state_dict and v.size() == model_state_dict[k].size()}
+model_state_dict.update(pretrained_dict)
+ncf_model.load_state_dict(model_state_dict)
 
 # Evaluate the model before training (optional)
 metrics = defaultdict(list)
