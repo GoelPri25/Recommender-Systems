@@ -30,7 +30,7 @@ test_user_input, test_movie_input, test_labels = get_model_data(test_dict)
 gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor).to(device)
 model_state_dict = gmf_model.state_dict()
 
-pretrained_dict = torch.load('5_gmf.pth')
+pretrained_dict = torch.load('5_gmf.pth', weights_only=True)
 pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state_dict and v.size() == model_state_dict[k].size()}
 model_state_dict.update(pretrained_dict)
 gmf_model.load_state_dict(model_state_dict)
@@ -40,7 +40,7 @@ gmf_model.load_state_dict(model_state_dict)
 # Instantiate the MLP model first
 mlp_model = MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer).to(device)
 model_state_dict = gmf_model.state_dict()
-pretrained_dict = torch.load('mlp_best.pth')
+pretrained_dict = torch.load('mlp_best.pth', weights_only=True)
 model_state_dict.update(pretrained_dict)
 mlp_model.load_state_dict(model_state_dict)
 
