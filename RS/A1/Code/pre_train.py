@@ -44,7 +44,7 @@ gmf_model.load_state_dict(model_state_dict)
 # 加载 MLP 模型
 mlp_model = MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer).to(device)
 model_state_dict = mlp_model.state_dict()
-pretrained_dict = torch.load('mlp_best.pth', weights_only=False)  # 加载完整的 MLP 模型
+pretrained_dict = torch.load('MLP_best_model.pth', weights_only=False)  # 加载完整的 MLP 模型
 pretrained_dict = pretrained_dict.module.state_dict() if isinstance(pretrained_dict, DataParallel) else pretrained_dict
 pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state_dict and v.size() == model_state_dict[k].size()}
 
