@@ -15,13 +15,13 @@ class MLP(nn.Module):
             self.mlp.add_module(f'relu{i}', nn.ReLU())
             input_dim = layers[i]
         
-        self.fc_output = nn.Linear(input_dim, 1)
+        # self.fc_output = nn.Linear(input_dim, 1)
 
     def forward(self, user_indices, item_indices):
         user_latent = self.user_embedding(user_indices).to(self.user_embedding.weight.device)
         item_latent = self.item_embedding(item_indices).to(self.user_embedding.weight.device)
         concatenated = torch.cat((user_latent, item_latent), dim=1)
-        mlp_out = self.mlp(concatenated)
-        prediction = self.fc_output(mlp_out)
+        prediction = self.mlp(concatenated)
+        # prediction = self.fc_output(mlp_out)
         # prediction = torch.sigmoid(self.fc_output(mlp_out))
         return prediction
