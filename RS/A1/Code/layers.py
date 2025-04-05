@@ -27,7 +27,7 @@ base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
 
-layers = [[256, 128, 64], [128, 64], [64]]
+layers = [[512, 256, 128, 64], [64]]
 results = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 32
@@ -137,7 +137,7 @@ for layer in layers:
 
         # Save to CSV every epoch
         df_metrics = pd.DataFrame(metrics)
-        df_metrics.to_csv(f'./4_training_{layer[0]}_{layer[1]}.csv', index=False)
+        df_metrics.to_csv(f'./4_training_{layer[0]}_.csv', index=False)
 
         # Early stopping mechanism
         tolerance = 0.001  # Allow minor fluctuations
@@ -150,7 +150,7 @@ for layer in layers:
             print(f"Early Stopping Counter: {counter}/{patience}")
             if counter >= patience:
                 print("Early stopping: Loss stagnated.")
-                torch.save(best_model, f"./4_training_{layer[0]}_{layer[1]}.pth") 
+                torch.save(best_model, f"./4_training_{layer[0]}_.pth") 
                 break
 
 
@@ -164,7 +164,7 @@ for layer in layers:
         
         # Save the final metrics including test results to CSV
         df_metrics = pd.DataFrame(metrics)
-        df_metrics.to_csv(f'./4_test_{layer[0]}_{layer[1]}.csv', index=False)
+        df_metrics.to_csv(f'./4_test_{layer[0]}_.csv', index=False)
 
         # Store results for reference
         results['name'] = {
