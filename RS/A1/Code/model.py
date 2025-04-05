@@ -4,7 +4,7 @@ from NeuMF import NeuMF
 from GMF import GMF
 from MLP import MLP
 
-from data_load import simple_load_data_rate, get_model_data
+from data_load_perpos import simple_load_data_rate, get_model_data
 
 import random
 import torch
@@ -25,11 +25,12 @@ base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
 train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = simple_load_data_rate(rating_data_file, negative_sample_no_train=5, negative_sample_no_valid=100, threshold=3)
-
+layer = [128, 64]
+predictive_factor = 64
 models = [
-    (NeuMF(num_users=user_num + 1, num_items=movie_num + 1, mf_dim=32, layers=[16, 8]), 'ncf'),
-    (MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=[16, 8]), 'mlp'),
-    (GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=32), 'gmf')
+    (NeuMF(num_users=user_num + 1, num_items=movie_num + 1, mf_dim=predictive_factor, layers=layer), 'ncf'),
+    (MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer), 'mlp'),
+    (GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor), 'gmf')
 ]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
