@@ -8,7 +8,7 @@ import pandas as pd
 
 # Define the parameters used when the model was trained
 layer = [16, 10]
-predictive_factor = 5
+predictive_factor = 10
 base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
 rating_data_file = os.path.join(base_dir, name_rating_dir)
