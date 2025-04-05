@@ -8,9 +8,9 @@ class GMF(nn.Module):
         self.item_embedding = nn.Embedding(num_items, latent_dim)
 
         nn.init.kaiming_normal_(self.user_embedding.weight, nonlinearity='relu')
-        nn.init.kaiming_normal_(self.user_embedding.weight, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.item_embedding.weight, nonlinearity='relu')
 
-        self.fc = nn.Linear(latent_dim, 1)
+        # self.fc = nn.Linear(latent_dim, 1)
 
     def forward(self, user_indices, item_indices):
         device = next(self.parameters()).device

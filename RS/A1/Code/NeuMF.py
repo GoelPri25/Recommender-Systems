@@ -67,6 +67,7 @@ class NeuMF(nn.Module):
         mlp_out = self.mlp_layers(mlp_input)
 
         # Combine GMF and MLP outputs
-        # combined = torch.cat((gmf_out, mlp_out), dim=-1)
-        prediction = torch.sum(torch.cat((gmf_out, mlp_out), dim=-1), dim=-1, keepdim=True)
+        combined = torch.cat((gmf_out, mlp_out), dim=-1)
+        # prediction = torch.sigmoid(self.fc_output(combined))  # Final prediction
+        prediction = self.fc_output(combined)
         return prediction
