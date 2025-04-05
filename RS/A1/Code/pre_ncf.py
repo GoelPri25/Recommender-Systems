@@ -7,8 +7,9 @@ from collections import defaultdict
 import pandas as pd
 import matplotlib.pyplot as plt
 from torch.nn.parallel import DataParallel
-
+import random
 torch.serialization.add_safe_globals([DataParallel])
+random.seed(1000)
 
 # Define the parameters used when the model was trained
 layer = [16, 10]
