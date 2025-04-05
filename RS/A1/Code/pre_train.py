@@ -72,8 +72,11 @@ for i in range(1, len(layer)):
     # ncf_model.mlp_layers[i].weight.data.copy_(mlp_model.mlp[i].weight.data)
     # ncf_model.mlp_layers[i].bias.data.copy_(mlp_model.mlp[i].bias.data)
 
-ncf_model.fc_output.weight.data.copy_(0.5 * gmf_model.fc.weight.data + 0.5 * mlp_model.fc_output.weight.data)
-ncf_model.fc_output.bias.data.copy_(0.5 * gmf_model.fc.bias.data + 0.5 * mlp_model.fc_output.bias.data)
+fc_weight = torch.cat([gmf_model.fc.weight.data, mlp_model.fc_output.weight.data], dim=1)
+fc_bias = 0.5 * gmf_model.fc.bias.data + 0.5 * mlp_model.fc_output.bias.data
+
+ncf_model.fc_output.weight.data.copy_(fc_weight)
+ncf_model.fc_output.bias.data.copy_(fc_bias)
 
 # 测试前的评估
 metrics = defaultdict(list)
