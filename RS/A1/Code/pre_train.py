@@ -26,7 +26,7 @@ train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _= s
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
 valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
 test_user_input, test_movie_input, test_labels = get_model_data(test_dict)
-gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, mf_dim=predictive_factor).to(device)
+gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor).to(device)
 
 state_dict = torch.load('./5_gmf.pth', weights_only=True)
 state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
