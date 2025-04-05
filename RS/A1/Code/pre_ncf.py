@@ -6,6 +6,7 @@ from evaluation import model_evaluation_metric
 from collections import defaultdict
 import pandas as pd
 import matplotlib.pyplot as plt
+torch.serialization.add_safe_globals([DataParallel])
 
 # Define the parameters used when the model was trained
 layer = [16, 10]
