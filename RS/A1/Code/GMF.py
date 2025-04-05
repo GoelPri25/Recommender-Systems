@@ -10,7 +10,7 @@ class GMF(nn.Module):
         nn.init.kaiming_normal_(self.user_embedding.weight, nonlinearity='relu')
         nn.init.kaiming_normal_(self.item_embedding.weight, nonlinearity='relu')
 
-        # self.fc = nn.Linear(latent_dim, 1)
+        self.fc = nn.Linear(latent_dim, 1)
 
     def forward(self, user_indices, item_indices):
         device = next(self.parameters()).device
@@ -19,6 +19,6 @@ class GMF(nn.Module):
         item_indices = item_indices.to(device)
         user_latent = self.user_embedding(user_indices).to(self.user_embedding.weight.device)
         item_latent = self.item_embedding(item_indices).to(self.user_embedding.weight.device)
-        prediction = torch.mul(user_latent, item_latent).sum(dim=1, keepdim=True)
+        prediction = self.fc(torch.mul(user_latent, item_latent).sum(dim=1, keepdim=True))
         # prediction = torch.sigmoid(interaction)
         return prediction
