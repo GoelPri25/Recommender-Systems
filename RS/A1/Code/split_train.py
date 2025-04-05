@@ -32,7 +32,7 @@ rating_data_file = os.path.join(base_dir, name_rating_dir)
 #train_dict, val_dict, test_dict, non_interacted_movies, movie_num, user_num = load_data_rate(file_name)
 
 data_loads = [
-    ('pos_neg', simple_load_data_rate1, get_model_data1),
+    #('pos_neg', simple_load_data_rate1, get_model_data1),
     ('random', simple_load_data_rate2, get_model_data2)
 ]
 
