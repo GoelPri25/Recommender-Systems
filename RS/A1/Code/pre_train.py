@@ -1,5 +1,7 @@
 import torch
 from NeuMF import NeuMF
+from GMF import GMF
+from MLP import MLP
 import os
 from data_load_perpos import simple_load_data_rate, get_model_data
 from evaluation import model_evaluation_metric
@@ -24,9 +26,23 @@ train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _= s
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
 valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
 test_user_input, test_movie_input, test_labels = get_model_data(test_dict)
+gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, mf_dim=predictive_factor).to(device)
 
-gmf_model = torch.load('./5_gmf.pth')  # GMF
-mlp_model = torch.load('./mlp_best.pth')  # MLP 
+state_dict = torch.load('./5_gmf.pth', weights_only=True)
+state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+
+# Load the modified state dict into the model
+gmf_model.load_state_dict(state_dict)
+
+# Instantiate the MLP model first
+mlp_model = MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer).to(device)
+
+# Load the state_dict from the saved model checkpoint
+state_dict = torch.load('./mlp_best.pth', weights_only=True)
+# Remove 'module.' prefix if it exists (for models saved using DataParallel)
+state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+# Load the state_dict into the MLP model
+mlp_model.load_state_dict(state_dict)
 
 ncf_model = NeuMF(
     num_users=user_num + 1,  # +1 for 0-based indexing
