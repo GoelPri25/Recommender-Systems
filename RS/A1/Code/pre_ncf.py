@@ -33,9 +33,11 @@ ncf_model = NeuMF(
 model_state_dict = ncf_model.state_dict()
 
 # Load the pre-trained best model weights
+
 pretrained_dict = torch.load('./ncf_best.pth', weights_only=False)
 
 # Create a new state_dict without the '_orig_mod.' prefix
+pretrained_dict = pretrained_dict.module.state_dict() if isinstance(pretrained_dict, DataParallel) else pretrained_dict
 pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state_dict and v.size() == model_state_dict[k].size()}
 model_state_dict.update(pretrained_dict)
 ncf_model.load_state_dict(model_state_dict)
