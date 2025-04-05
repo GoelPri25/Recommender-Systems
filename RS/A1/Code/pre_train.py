@@ -72,8 +72,8 @@ for i in range(1, len(layer)):
     # ncf_model.mlp_layers[i].weight.data.copy_(mlp_model.mlp[i].weight.data)
     # ncf_model.mlp_layers[i].bias.data.copy_(mlp_model.mlp[i].bias.data)
 
-ncf_model.prediction.weight.data.copy_(0.5 * gmf_model.prediction.weight.data + 0.5 * mlp_model.prediction.weight.data)
-ncf_model.prediction.bias.data.copy_(0.5 * gmf_model.prediction.bias.data + 0.5 * mlp_model.prediction.bias.data)
+ncf_model.fc_output.weight.data.copy_(0.5 * gmf_model.fc.weight.data + 0.5 * mlp_model.fc_output.weight.data)
+ncf_model.fc_output.bias.data.copy_(0.5 * gmf_model.fc.bias.data + 0.5 * mlp_model.fc_output.bias.data)
 
 # 测试前的评估
 metrics = defaultdict(list)
