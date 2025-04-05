@@ -28,7 +28,6 @@ train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _ = 
 layer = [128, 64]
 predictive_factor = 64
 models = [
-    (NeuMF(num_users=user_num + 1, num_items=movie_num + 1, mf_dim=predictive_factor, layers=layer), 'ncf'),
     (MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer), 'mlp'),
     (GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor), 'gmf')
 ]
