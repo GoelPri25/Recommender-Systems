@@ -7,7 +7,7 @@ from collections import defaultdict
 import pandas as pd
 
 # Define the parameters used when the model was trained
-layer = [32, 16]
+layer = [16, 10]
 predictive_factor = 5
 base_dir = os.getcwd()
 name_rating_dir = "ratings.dat"
