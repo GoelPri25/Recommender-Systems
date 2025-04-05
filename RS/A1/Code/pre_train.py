@@ -26,38 +26,23 @@ train_dict, valid_dict, test_dict, movie_num, user_num, removed_users_info, _= s
 train_user_input, train_movie_input, train_labels = get_model_data(train_dict)
 valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
 test_user_input, test_movie_input, test_labels = get_model_data(test_dict)
+
 gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor).to(device)
+model_state_dict = gmf_model.state_dict()
 
-state_dict = torch.load('5_gmf.pth', map_location=device, weights_only=False)
+pretrained_dict = torch.load('5_gmf.pth')
+pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state_dict and v.size() == model_state_dict[k].size()}
+model_state_dict.update(pretrained_dict)
+gmf_model.load_state_dict(model_state_dict)
 
-# If the model was wrapped in DataParallel, access the actual model's state_dict
-if isinstance(state_dict, torch.nn.DataParallel):
-    state_dict = state_dict.module.state_dict()
 
-# Now, replace 'module.' prefix if it exists (for models saved using DataParallel)
-state_dict = {k.replace('_orig_mod.', ''): v for k, v in state_dict.items()}
-
-# Load the state_dict into the GMF model
-gmf_model.load_state_dict(state_dict)
-
-# Load the modified state dict into the model
-gmf_model.load_state_dict(state_dict)
 
 # Instantiate the MLP model first
 mlp_model = MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer).to(device)
-
-# Load the state_dict from the saved model checkpoint
-state_dict = torch.load('mlp_best.pth', map_location=device, weights_only=False)
-
-# If the model was wrapped in DataParallel, access the actual model's state_dict
-if isinstance(state_dict, torch.nn.DataParallel):
-    state_dict = state_dict.module.state_dict()
-
-# Now, replace 'module.' prefix if it exists (for models saved using DataParallel)
-state_dict = {k.replace('_orig_mod.', ''): v for k, v in state_dict.items()}
-
-# Load the state_dict into the MLP model
-mlp_model.load_state_dict(state_dict)
+model_state_dict = gmf_model.state_dict()
+pretrained_dict = torch.load('mlp_best.pth')
+model_state_dict.update(pretrained_dict)
+mlp_model.load_state_dict(model_state_dict)
 
 ncf_model = NeuMF(
     num_users=user_num + 1,  # +1 for 0-based indexing
