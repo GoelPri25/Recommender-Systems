@@ -68,7 +68,7 @@ for layer in layers:
     )
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.2, patience=5, verbose=True)
 
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
     scaler = torch.cuda.amp.GradScaler()
 
     user_input = torch.tensor(train_user_input, dtype=torch.long).to(device)
