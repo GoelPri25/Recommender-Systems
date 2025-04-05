@@ -35,7 +35,7 @@ if isinstance(state_dict, torch.nn.DataParallel):
     state_dict = state_dict.module.state_dict()
 
 # Now, replace 'module.' prefix if it exists (for models saved using DataParallel)
-state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+state_dict = {k.replace('_orig_mod.', ''): v for k, v in state_dict.items()}
 
 # Load the state_dict into the GMF model
 gmf_model.load_state_dict(state_dict)
@@ -54,7 +54,7 @@ if isinstance(state_dict, torch.nn.DataParallel):
     state_dict = state_dict.module.state_dict()
 
 # Now, replace 'module.' prefix if it exists (for models saved using DataParallel)
-state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+state_dict = {k.replace('_orig_mod.', ''): v for k, v in state_dict.items()}
 
 # Load the state_dict into the MLP model
 mlp_model.load_state_dict(state_dict)
