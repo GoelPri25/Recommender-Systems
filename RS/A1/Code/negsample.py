@@ -56,8 +56,8 @@ for negative_sample_no_train in negative_samples:
     model_ncf = NeuMF(
         num_users=user_num + 1,
         num_items=movie_num + 1,
-        mf_dim=8,
-        layers=[16, 8]
+        mf_dim=64,
+        layers=[128, 64]
     ).to(device)
 
     optimizer = optim.Adam(
