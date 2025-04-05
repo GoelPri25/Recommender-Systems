@@ -60,14 +60,14 @@ ncf_model = NeuMF(
 ).to(device)
 
 # 将 GMF 和 MLP 的权重复制到 NeuMF 中
-ncf_model.gmf_user_embedding.weight.data.copy_(gmf_model.gmf_user_embedding.weight.data)
-ncf_model.gmf_item_embedding.weight.data.copy_(gmf_model.gmf_item_embedding.weight.data)
-ncf_model.mlp_user_embedding.weight.data.copy_(mlp_model.mlp_user_embedding.weight.data)
-ncf_model.mlp_item_embedding.weight.data.copy_(mlp_model.mlp_item_embedding.weight.data)
+ncf_model.user_embedding_gmf.weight.data.copy_(gmf_model.user_embedding.weight.data)
+ncf_model.item_embedding_gmf.weight.data.copy_(gmf_model.item_embedding.weight.data)
+ncf_model.user_embedding_mlp.weight.data.copy_(mlp_model.user_embedding.weight.data)
+ncf_model.item_embedding_mlp.weight.data.copy_(mlp_model.item_embedding.weight.data)
 
 for i in range(1, len(layer)):  
-    ncf_model.mlp_layers[i].weight.data.copy_(mlp_model.mlp_layers[i].weight.data)
-    ncf_model.mlp_layers[i].bias.data.copy_(mlp_model.mlp_layers[i].bias.data)
+    ncf_model.mlp_layers[i].weight.data.copy_(mlp_model.mlp[i].weight.data)
+    ncf_model.mlp_layers[i].bias.data.copy_(mlp_model.mlp[i].bias.data)
 
 ncf_model.prediction.weight.data.copy_(0.5 * gmf_model.prediction.weight.data + 0.5 * mlp_model.prediction.weight.data)
 ncf_model.prediction.bias.data.copy_(0.5 * gmf_model.prediction.bias.data + 0.5 * mlp_model.prediction.bias.data)
