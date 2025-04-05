@@ -28,7 +28,7 @@ valid_user_input, valid_movie_input, valid_labels = get_model_data(valid_dict)
 test_user_input, test_movie_input, test_labels = get_model_data(test_dict)
 gmf_model = GMF(num_users=user_num + 1, num_items=movie_num + 1, latent_dim=predictive_factor).to(device)
 
-state_dict = torch.load('./gmf_best.pth', map_location=device, weights_only=False)
+state_dict = torch.load('gmf_best.pth', map_location=device, weights_only=False)
 
 # If the model was wrapped in DataParallel, access the actual model's state_dict
 if isinstance(state_dict, torch.nn.DataParallel):
@@ -47,7 +47,7 @@ gmf_model.load_state_dict(state_dict)
 mlp_model = MLP(num_users=user_num + 1, num_items=movie_num + 1, layers=layer).to(device)
 
 # Load the state_dict from the saved model checkpoint
-state_dict = torch.load('./mlp_best.pth', map_location=device, weights_only=False)
+state_dict = torch.load('mlp_best.pth', map_location=device, weights_only=False)
 
 # If the model was wrapped in DataParallel, access the actual model's state_dict
 if isinstance(state_dict, torch.nn.DataParallel):
