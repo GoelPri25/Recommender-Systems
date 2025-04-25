@@ -1,4 +1,4 @@
-# To run the file 
+## To train NCF 
 python train.py
 
 ## About This Project
